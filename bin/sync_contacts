@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+require File.expand_path('../contact_sync', File.dirname(__FILE__))
+
+s = Session.new
+s.sync_users!
