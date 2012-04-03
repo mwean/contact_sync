@@ -1,7 +1,8 @@
 class Contact
-  attr_accessor :content, :id, :title, :name, :xml, :updated, :external_id
+  attr_accessor :content, :id, :title, :name, :xml, :updated, :external_id, :user
 
-  def initialize(content_or_id, connection)
+  def initialize(content_or_id, connection, user)
+    @user = user
     @connection = connection
     @content = {}
     @content[:emails] = []
@@ -20,9 +21,9 @@ class Contact
   def create_or_update_for(user)
     if user.contact_ids.include?(@external_id.id_value)
       contact_id = user.get_contact_by_external_id(@external_id).id
-      user.connection.put(user.url + '/full/' + contact_id, write)
+      user.connection.put(user.url + '/full/' + contact_id, write(user.group_id))
     else
-      user.connection.post(user.url + '/full', write)
+      user.connection.post(user.url + '/full', write(user.group_id))
     end
   end
 
@@ -57,7 +58,7 @@ class Contact
   end
 
   def update!
-    @connection.put('https://www.google.com/m8/feeds/contacts/default/full/' + @id, write)
+    @connection.put('https://www.google.com/m8/feeds/contacts/default/full/' + @id, write(@user.group_id))
   end
 
   def read(xml)
@@ -94,11 +95,19 @@ class Contact
   end
 
   def generate_external_id
-    ext_id = (@name.first_name[:value] + @name.last_name[:value] + Time.now.strftime("%Y%m%d%H%M")).downcase
+    ext_id = []
+    if @name
+      ext_id << [@name.first_name[:value], @name.last_name[:value]]
+    elsif !@content[:emails].empty?
+      ext_id << @content[:emails][0]
+    end  
+    ext_id << Time.now.strftime("%Y%m%d%H%M")
+    
+    ext_id = ext_id.flatten.compact.join.downcase
     @external_id = ExternalId.new(ext_id)
   end
 
-  def write
+  def write(group_id)
     builder = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
       xml.entry(xmlns: 'http://www.w3.org/2005/Atom', 'xmlns:gContact' => 'http://schemas.google.com/contact/2008', 'xmlns:batch' => 'http://schemas.google.com/gdata/batch', 'xmlns:gd' => 'http://schemas.google.com/g/2005', 'gd:etag' => '*') do
         xml.category(
@@ -107,14 +116,17 @@ class Contact
         )
         xml.id_ "https://www.google.com/m8/feeds/contacts/default/base/#{@id}" if @id
         xml.title_ @title
-        xml.send(@name.tag) do
-          @name.write(xml)
+        if @name
+          xml.send(@name.tag) do
+            @name.write(xml)
+          end
         end
         values.each do |element|
           xml.send(element.tag, element.attribute_hash, element.value) do
             element.write(xml)
           end
         end
+        xml.send('gContact:groupMembershipInfo', :deleted => 'false', :href => group_id)
       end
     end
     @xml = builder.to_xml

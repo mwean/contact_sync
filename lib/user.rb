@@ -1,5 +1,5 @@
 class User
-  attr_accessor :email, :password, :url, :contacts, :connection, :updated_contacts
+  attr_accessor :email, :password, :url, :contacts, :connection, :updated_contacts, :group_id
 
   def initialize(email, password)
     @email = email
@@ -24,6 +24,7 @@ class User
   end
 
   def sync_with(other_user, sync_range = 5)
+    get_group_id
     get_contacts
 
     other_user.get_contacts
@@ -58,11 +59,22 @@ class User
     output += 'synced'
     puts output
   end
+  
+  def parse_from_url(url)
+    response = @connection.get(url)
+    Nokogiri::XML::Document.parse(response.body)
+  end
+  
+  def get_group_id
+    url = @url.sub(/contacts/, 'groups') + '/full'
+    response = parse_from_url(url)
+    
+    @group_id = response.css('entry').map { |entry| entry.css('id').inner_html if entry.css('gContact|systemGroup')[0]['id'] == 'Contacts' }.compact[0]
+  end
 
   def get_contacts
     url = @url + '/full'
-    response = @connection.get(url)
-    parsed_response = Nokogiri::XML::Document.parse(response.body)
-    parsed_response.css('entry').each { |e| @contacts << Contact.new(e, @connection) }
+    response = parse_from_url(url)
+    response.css('entry').each { |e| @contacts << Contact.new(e, @connection, self) }
   end
 end
