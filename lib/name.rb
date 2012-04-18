@@ -11,6 +11,10 @@ class Name < Element
     node = super
     find_attrs_and_children(node)
   end
+  
+  def full_name
+    [@first_name[:value], @last_name[:value]].compact.join(' ')
+  end
 
   def children
     %w{ name_prefix first_name middle_name last_name name_suffix }.map { |child| '@' + child }
