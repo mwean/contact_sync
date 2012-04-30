@@ -1,5 +1,5 @@
 class Contact
-  attr_accessor :content, :id, :title, :name, :xml, :updated, :external_id, :user, :marked_for_deletion, :etag
+  attr_accessor :content, :id, :title, :name, :xml, :updated, :external_id, :user, :marked_for_deletion, :etag, :notes
 
   def initialize(content_or_id, connection, user)
     @user = user
@@ -9,6 +9,7 @@ class Contact
     @content[:ims] = []
     @content[:phone_numbers] = []
     @content[:addresses] = []
+    @content[:organization] = []
     if content_or_id.is_a?(Nokogiri::XML::Element)
       read(content_or_id)
     elsif content_or_id.is_a?(String)
@@ -121,6 +122,8 @@ class Contact
         @id = node.content.split('/').last
       when 'title'
         @title = node.content
+      when 'notes'
+        @notes = node.content
       when 'name'
         @name = Name.new(node)
       when 'email'
@@ -131,6 +134,8 @@ class Contact
         @content[:phone_numbers] << PhoneNumber.new(node)
       when 'structuredPostalAddress'
         @content[:addresses] << Address.new(node)
+      when 'organization'
+        @content[:organization] << Organization.new(node)
       end
     end
 
@@ -184,6 +189,7 @@ class Contact
         )
         xml.id_ "https://www.google.com/m8/feeds/contacts/default/base/#{@id}" if @id
         xml.title_ @title
+        xml.content_ @notes if @notes
         # xml.updated '2012-01-01T12:00:00.594Z'
         xml.updated time.strftime("%Y-%m-%dT%T%Z") if time
         if @name

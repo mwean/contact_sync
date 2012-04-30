@@ -54,13 +54,13 @@ class User
     @contacts.each do |id, contact|
       if @old_contacts[id]
         # if id == 'elikanal201204031405'
-          # p contact.newer_than?(@old_contacts[id])
-          # p contact.updated# .strftime("%D %H:%M")
-          # p contact.content[:addresses]
-          # p '----'
-          # p @old_contacts[id].updated# .strftime("%D %H:%M")
-          # p @old_contacts[id].content[:addresses]
-          # p '===================='
+        # p contact.newer_than?(@old_contacts[id])
+        # p contact.updated# .strftime("%D %H:%M")
+        # p contact.content[:addresses]
+        # p '----'
+        # p @old_contacts[id].updated# .strftime("%D %H:%M")
+        # p @old_contacts[id].content[:addresses]
+        # p '===================='
         # end
         
         contact.id = @id_map[id]
@@ -76,14 +76,14 @@ class User
   end
   
   def update_with(master_contacts)
-#     p '============='
-#     p @email
-#     master_contacts.each do |id, contact|
-#           p '-------------'
-#           p contact.external_id.id_value
-# p           contact.updated
-# p           @contacts[id].updated
-#           p (contact.updated.to_time - @contacts[id].updated.to_time)
+    #     p '============='
+    #     p @email
+    master_contacts.each do |id, contact|
+      #           p '-------------'
+      #           p contact.external_id.id_value
+      # p           contact.updated
+      # p           @contacts[id].updated
+      #           p (contact.updated.to_time - @contacts[id].updated.to_time)
       
       
       if contact_ids.include?(id)
@@ -141,8 +141,8 @@ class User
           xml['batch'].id_ "delete#{rand(99999)}"
           xml['batch'].operation(type: 'delete')
           xml.category(
-            scheme: "http://schemas.google.com/g/2005#kind",
-            term: "http://schemas.google.com/contact/2008#contact"
+          scheme: "http://schemas.google.com/g/2005#kind",
+          term: "http://schemas.google.com/contact/2008#contact"
           )
           xml.id_ "http://www.google.com/m8/feeds/contacts/default/full/#{contact.id}"
         end
@@ -150,14 +150,14 @@ class User
     end
   end
   
-#     <batch:id>this-is-my-fourth-batch-request</batch:id>
-#     <batch:operation type="delete"/>
-# 
-#     <category scheme="http://schemas.google.com/g/2005#kind"
-# term="http://schemas.google.com/g/2008#contact"/>
-#     <id>http://www.google.com/m8/feeds/contacts/default/full/012345</id>
-#     <link rel="edit" type="application/atom+xml"
-# href="http://www.google.com/m8/feeds/contacts/default/full/012345/1204720598835123"/>
+  #     <batch:id>this-is-my-fourth-batch-request</batch:id>
+  #     <batch:operation type="delete"/>
+  # 
+  #     <category scheme="http://schemas.google.com/g/2005#kind"
+  # term="http://schemas.google.com/g/2008#contact"/>
+  #     <id>http://www.google.com/m8/feeds/contacts/default/full/012345</id>
+  #     <link rel="edit" type="application/atom+xml"
+  # href="http://www.google.com/m8/feeds/contacts/default/full/012345/1204720598835123"/>
 
   # def updated_contacts(minutes_ago = 5)
   #   @contacts.select { |c| c.updated > minutes_ago.minutes.ago.utc.to_datetime }
